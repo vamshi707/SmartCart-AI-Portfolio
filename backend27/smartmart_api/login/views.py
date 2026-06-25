@@ -42,7 +42,8 @@ def send_otp(request):
     user_exists = User.objects.filter(email=email).exists()
 
     return Response({
-        "message": "OTP sent",
+        "message": "OTP generated",
+        "otp": otp,
         "existing_user": user_exists
     })
 
