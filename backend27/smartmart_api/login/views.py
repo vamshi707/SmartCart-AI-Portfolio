@@ -8,7 +8,6 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-
 otp_storage = {}
 
 
@@ -17,19 +16,37 @@ def send_otp(request):
     email = request.data.get("email")
 
     if not email:
-        return Response({"message": "Email required"}, status=400)
+        return Response(
+            {"message": "Email required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-    otp = "1234"   # Temporary OTP for testing
+    otp = str(random.randint(1000, 9999))
 
-    # IMPORTANT: Save the OTP
     otp_storage[email] = otp
 
-    user_exists = User.objects.filter(email=email).exists()
+    try:
+        send_mail(
+            subject="SmartCart OTP",
+            message=f"Your OTP is {otp}",
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        return Response(
+            {
+                "message": "Email sending failed",
+                "error": str(e)
+            },
+            status=500
+        )
+
+    existing_user = User.objects.filter(email=email).exists()
 
     return Response({
-        "message": "OTP generated",
-        "otp": otp,
-        "existing_user": user_exists
+        "message": "OTP sent",
+        "existing_user": existing_user
     })
 
 
@@ -42,13 +59,13 @@ def register_user(request):
     if otp_storage.get(email) != otp:
         return Response(
             {"message": "Invalid OTP"},
-            status=status.HTTP_400_BAD_REQUEST
+            status=400
         )
 
     if User.objects.filter(email=email).exists():
         return Response(
             {"message": "User already exists"},
-            status=status.HTTP_400_BAD_REQUEST
+            status=400
         )
 
     User.objects.create_user(
@@ -73,7 +90,7 @@ def verify_login_otp(request):
     if otp_storage.get(email) != otp:
         return Response(
             {"message": "Invalid OTP"},
-            status=status.HTTP_400_BAD_REQUEST
+            status=400
         )
 
     otp_storage.pop(email, None)
