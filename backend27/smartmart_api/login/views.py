@@ -1,8 +1,8 @@
 import random
 
-from django.core.mail import send_mail
-from django.contrib.auth.models import User
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -12,51 +12,29 @@ from rest_framework import status
 otp_storage = {}
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def send_otp(request):
     email = request.data.get("email")
 
     if not email:
-        return Response(
-            {"message": "Email required"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"message": "Email required"}, status=400)
 
-    otp = str(random.randint(1000, 9999))
-    otp_storage[email] = otp
-
-    try:
-        send_mail(
-            subject="Your SmartCart OTP",
-            message=f"Your OTP is {otp}",
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-    except Exception as e:
-        return Response(
-            {"message": "Email sending failed", "error": str(e)},
-            status=500
-        )
-
-    user_exists = User.objects.filter(email=email).exists()
+    otp = "1234"
 
     return Response({
         "message": "OTP generated",
         "otp": otp,
-        "existing_user": user_exists
+        "existing_user": False
     })
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def register_user(request):
     name = request.data.get("name")
     email = request.data.get("email")
     otp = request.data.get("otp")
 
-    saved_otp = otp_storage.get(email)
-
-    if saved_otp != otp:
+    if otp_storage.get(email) != otp:
         return Response(
             {"message": "Invalid OTP"},
             status=status.HTTP_400_BAD_REQUEST
@@ -72,7 +50,7 @@ def register_user(request):
         username=email,
         first_name=name,
         email=email,
-        password="defaultpassword123"
+        password="defaultpassword123",
     )
 
     otp_storage.pop(email, None)
@@ -82,14 +60,12 @@ def register_user(request):
     })
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def verify_login_otp(request):
     email = request.data.get("email")
     otp = request.data.get("otp")
 
-    saved_otp = otp_storage.get(email)
-
-    if saved_otp != otp:
+    if otp_storage.get(email) != otp:
         return Response(
             {"message": "Invalid OTP"},
             status=status.HTTP_400_BAD_REQUEST
