@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-xfpsg_d^g(@yp!evdsn4%baaw6n-9uy+x9wiot-ebb=aoz&ad5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "smartcart-ai-portfolio.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
