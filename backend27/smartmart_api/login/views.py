@@ -19,12 +19,17 @@ def send_otp(request):
     if not email:
         return Response({"message": "Email required"}, status=400)
 
-    otp = "1234"
+    otp = "1234"   # Temporary OTP for testing
+
+    # IMPORTANT: Save the OTP
+    otp_storage[email] = otp
+
+    user_exists = User.objects.filter(email=email).exists()
 
     return Response({
         "message": "OTP generated",
         "otp": otp,
-        "existing_user": False
+        "existing_user": user_exists
     })
 
 
